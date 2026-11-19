@@ -9,6 +9,7 @@ import { formatErrorMessage } from '@/lib/error-utils';
 import {
   DEFAULT_DOCTOR_SYSTEM_INSTRUCTION,
   DEFAULT_DOCTOR_VOICE,
+  DEFAULT_ELEVENLABS_VOICE,
   AVAILABLE_VOICES,
   VoiceName,
   CONSULTATION_LANGUAGES,
@@ -79,7 +80,7 @@ export default function Home() {
   const [systemInstruction, setSystemInstruction] = useState(
     DEFAULT_DOCTOR_SYSTEM_INSTRUCTION
   );
-  const [selectedVoice, setSelectedVoice] = useState<VoiceName>(DEFAULT_DOCTOR_VOICE);
+  const [selectedVoice, setSelectedVoice] = useState<VoiceName>(DEFAULT_ELEVENLABS_VOICE);
   const [selectedLanguage, setSelectedLanguage] = useState<ConsultationLanguage>(
     DEFAULT_CONSULTATION_LANGUAGE
   );

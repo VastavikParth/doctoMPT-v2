@@ -68,6 +68,142 @@ export function useGeminiLive({
   // Buffer for incoming doctor speech transcription
   const currentDoctorTurnRef = useRef<string>('');
   const currentUserTurnRef = useRef<string>('');
+  const currentSpeechIdRef = useRef<number>(0);
+
+  // Playback decoded AudioBuffer (e.g. from ElevenLabs TTS)
+  const playAudioBuffer = useCallback((audioBuffer: AudioBuffer) => {
+    if (!audioContextRef.current) return;
+    const ctx = audioContextRef.current;
+    if (ctx.state === 'suspended') {
+      ctx.resume().catch(() => {});
+    }
+
+    try {
+      const channelData = audioBuffer.getChannelData(0);
+      let sumSquares = 0;
+      const step = Math.max(1, Math.floor(channelData.length / 1000));
+      let count = 0;
+      for (let i = 0; i < channelData.length; i += step) {
+        sumSquares += channelData[i] * channelData[i];
+        count++;
+      }
+      const rms = Math.min(1, Math.sqrt(sumSquares / (count || 1)) * 2.8);
+      setSpeakerLevel(rms);
+      setVisualState('speaking');
+
+      const source = ctx.createBufferSource();
+      source.buffer = audioBuffer;
+      source.connect(ctx.destination);
+
+      const now = ctx.currentTime;
+      const startTime = Math.max(now, nextPlayTimeRef.current);
+      source.start(startTime);
+      nextPlayTimeRef.current = startTime + audioBuffer.duration;
+
+      activeSourcesRef.current.push(source);
+
+      // Mute hardware mic & pause recognition while speaking to prevent speaker bleed
+      if (!isDoctorSpeakingRef.current) {
+        isDoctorSpeakingRef.current = true;
+        if (micStreamRef.current) {
+          micStreamRef.current.getAudioTracks().forEach((track) => {
+            track.enabled = false;
+          });
+        }
+        if (recognitionRef.current) {
+          try {
+            recognitionRef.current.abort();
+          } catch (e) {}
+        }
+      }
+
+      source.onended = () => {
+        const index = activeSourcesRef.current.indexOf(source);
+        if (index > -1) {
+          activeSourcesRef.current.splice(index, 1);
+        }
+        if (activeSourcesRef.current.length === 0) {
+          setSpeakerLevel(0);
+          setTimeout(() => {
+            if (activeSourcesRef.current.length === 0) {
+              isDoctorSpeakingRef.current = false;
+              setVisualState((prev) => (prev === 'speaking' ? 'listening' : prev));
+              setStatusText('Dr. DoctoMPT is listening...');
+
+              if (micStreamRef.current && !isMutedRef.current) {
+                micStreamRef.current.getAudioTracks().forEach((track) => {
+                  track.enabled = true;
+                });
+              }
+
+              if (recognitionRef.current && !isMutedRef.current) {
+                try {
+                  recognitionRef.current.start();
+                } catch (e) {}
+              }
+            }
+          }, 300);
+        }
+      };
+    } catch (err) {
+      console.error('[ElevenLabs Playback] Error scheduling audio buffer:', err);
+    }
+  }, []);
+
+  // Fetch ElevenLabs speech and play it through Web AudioContext
+  const playElevenLabsSpeech = useCallback(
+    async (textToSpeak: string, voiceIdentifier?: string) => {
+      if (!textToSpeak.trim()) return;
+      const speechId = ++currentSpeechIdRef.current;
+
+      try {
+        setVisualState('speaking');
+        setStatusText('Dr. DoctoMPT is speaking...');
+
+        // Ayush M = HqRQSXEwwdjbY3dgUSzb, Bill = pqHfZKP75CvOlQylNhV4
+        const targetVoiceId =
+          voiceIdentifier === 'ElevenLabs-Bill'
+            ? 'pqHfZKP75CvOlQylNhV4'
+            : 'HqRQSXEwwdjbY3dgUSzb';
+
+        const res = await fetch('/api/elevenlabs-tts', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            text: textToSpeak,
+            voiceId: targetVoiceId,
+            modelId: 'eleven_v3',
+            stability: 0.0, // Creative
+            similarityBoost: 0.75,
+          }),
+        });
+
+        if (!res.ok) {
+          const errText = await res.text();
+          console.warn('[ElevenLabs TTS] API returned error:', errText);
+          return;
+        }
+
+        const arrayBuf = await res.arrayBuffer();
+        if (speechId !== currentSpeechIdRef.current) {
+          // Interrupted while downloading
+          return;
+        }
+
+        if (!audioContextRef.current) return;
+        const audioBuf = await audioContextRef.current.decodeAudioData(arrayBuf);
+        if (speechId !== currentSpeechIdRef.current) {
+          // Interrupted while decoding
+          return;
+        }
+
+        playAudioBuffer(audioBuf);
+      } catch (err) {
+        console.error('[ElevenLabs TTS] Synthesis failed:', err);
+      }
+    },
+    [playAudioBuffer]
+  );
 
   // Clean up all audio nodes and audio streams
   const stopAudio = useCallback(() => {
@@ -125,6 +261,7 @@ export function useGeminiLive({
   // Handle interruption (Barge-in)
   const handleInterruption = useCallback(() => {
     console.log('[Gemini Live] Interruption signal received. Halting audio playback.');
+    currentSpeechIdRef.current++;
     activeSourcesRef.current.forEach((node) => {
       try {
         node.stop();
@@ -323,6 +460,9 @@ RETURNING PATIENT ACCESS RULE: When a patient identifies themselves (e.g. Alex) 
       }
 
       // 5. Connect to Live Session (Gemini 3.8 Live)
+      const isElevenLabs = voiceName?.startsWith('ElevenLabs');
+      const geminiVoice = isElevenLabs ? 'Charon' : (voiceName || 'Charon');
+
       const session = await ai.live.connect({
         model: 'gemini-3.8-live',
         config: {
@@ -330,7 +470,7 @@ RETURNING PATIENT ACCESS RULE: When a patient identifies themselves (e.g. Alex) 
           speechConfig: {
             voiceConfig: {
               prebuiltVoiceConfig: {
-                voiceName: voiceName || DEFAULT_DOCTOR_VOICE,
+                voiceName: geminiVoice,
               },
             },
           },
@@ -377,7 +517,9 @@ RETURNING PATIENT ACCESS RULE: When a patient identifies themselves (e.g. Alex) 
             if (content.modelTurn?.parts) {
               for (const part of content.modelTurn.parts) {
                 if (part.inlineData && part.inlineData.data) {
-                  playPcmChunk(part.inlineData.data);
+                  if (!isElevenLabs) {
+                    playPcmChunk(part.inlineData.data);
+                  }
                 }
               }
             }
@@ -460,6 +602,9 @@ RETURNING PATIENT ACCESS RULE: When a patient identifies themselves (e.g. Alex) 
                     }),
                   },
                 ]);
+                if (isElevenLabs) {
+                  playElevenLabsSpeech(docTurnText, voiceName);
+                }
                 currentDoctorTurnRef.current = '';
               }
             }
