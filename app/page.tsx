@@ -1219,11 +1219,11 @@ export default function Home() {
             {/* AWS EC2 LangGraph Backend Status Pill */}
             <div
               className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-xs font-semibold text-emerald-800 dark:text-emerald-300"
-              title="AWS EC2 LangGraph + Neo4j Hybrid GraphRAG Backend (16.179.171.132)"
+              title="AWS EC2 LangGraph + Neo4j Hybrid GraphRAG Backend (3.26.55.253)"
             >
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
               <Server className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
-              <span>AWS LangGraph: 16.179.171.132</span>
+              <span>AWS LangGraph: 3.26.55.253</span>
             </div>
 
             {/* Live Audio Status Pill */}
@@ -1611,7 +1611,7 @@ export default function Home() {
               <div className="p-3 rounded-xl bg-slate-100 dark:bg-neutral-900 border border-teal-500/30 text-[11px] text-slate-500 dark:text-neutral-400 space-y-1 font-mono">
                 <div className="flex justify-between">
                   <span>Doctor Engine:</span>
-                  <span className="text-teal-600 dark:text-teal-400 font-semibold">gemini-3.8-flash-live</span>
+                  <span className="text-teal-600 dark:text-teal-400 font-semibold">gemini-3.8-live</span>
                 </div>
                 <div className="flex justify-between">
                   <span>Prescription Parser:</span>
@@ -1673,7 +1673,7 @@ export default function Home() {
             <div className="text-right">
               {devMode ? (
                 <span className="text-[11px] font-mono text-teal-700 dark:text-teal-400 bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800/50 px-2 py-0.5 rounded-md font-semibold">
-                  gemini-3.8-flash-live
+                  gemini-3.8-live
                 </span>
               ) : (
                 <span className="text-[11px] font-semibold text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800/50 px-2.5 py-0.5 rounded-full">
