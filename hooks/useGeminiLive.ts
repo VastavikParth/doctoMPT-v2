@@ -322,9 +322,9 @@ RETURNING PATIENT ACCESS RULE: When a patient identifies themselves (e.g. Alex) 
         console.warn('[Gemini Live] Prior database history notice:', histErr);
       }
 
-      // 5. Connect to Live Session
+      // 5. Connect to Live Session (Gemini 3.8 Flash LIVE)
       const session = await ai.live.connect({
-        model: 'gemini-3.8-live',
+        model: 'gemini-3.8-flash-live',
         config: {
           responseModalities: [Modality.AUDIO],
           speechConfig: {
