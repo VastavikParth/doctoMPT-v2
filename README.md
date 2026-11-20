@@ -96,6 +96,30 @@ This is **neither a basic chunk-only RAG nor a vectorless RAG**. It combines:
 
 ---
 
+## 🗺️ Archify & Graphify (Codebase Architecture & Knowledge Graph)
+
+DoctoMPT utilizes **Archify** for visual architecture call-flow modeling and **Graphify** for AST codebase intelligence without burning LLM context tokens:
+
+- **Archify Call-Flow Topology:** Interactive visual mapping of the multi-cloud architecture (Next.js 16 + ElevenLabs v3 Creative TTS + Gemini 3.8 Live + AWS EC2 LangGraph). Open [`graphify-out/architecture_flow.html`](graphify-out/architecture_flow.html) for 16 interactive Mermaid sequence/call diagrams.
+- **Graphify Codebase Knowledge Graph:** Deterministic Abstract Syntax Tree (AST) extraction mapping **449 nodes**, **806 edges**, and **32 functional communities** across Python and TypeScript.
+- **Top God Nodes:** `formatErrorMessage()` (13 edges), `Home()` (11 edges), `get_connection()` (11 edges), `normalizeMedication()` (11 edges), `getSupabaseAdminClient()` (10 edges), `SessionMemoryManager` (9 edges).
+
+### Quick Usage:
+```bash
+# Update AST Knowledge Graph (instant, 0 API tokens)
+python -m graphify update .
+
+# Query shortest dependency path between any components
+python -m graphify path "useGeminiLive" "playElevenLabsSpeech"
+
+# View interactive 2D/3D graph visualization
+start graphify-out/graph.html
+```
+
+📖 **Full Documentation:** See [docs/ARCHIFY_GRAPHIFY.md](docs/ARCHIFY_GRAPHIFY.md) for the detailed structural topology and community analysis.
+
+---
+
 ## 🛡 Security & Hardening on AWS EC2
 
 To protect the server against automated exploits, concurrency bottlenecks, and unauthorized access:
