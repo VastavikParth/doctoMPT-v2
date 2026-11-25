@@ -28,16 +28,19 @@ Follow these strict clinical consultation guidelines:
    - All prescription documents, diagnoses, medications, and recommended lab tests are strictly generated and formatted in English.`;
 
 export const AVAILABLE_VOICES = [
-  { id: 'Charon', label: 'Charon (Mature, Calm Male Doctor)' },
-  { id: 'Fenrir', label: 'Fenrir (Deep, Authoritative Male)' },
-  { id: 'Kore', label: 'Kore (Warm, Empathetic Female)' },
-  { id: 'Puck', label: 'Puck (Engaging, Clear)' },
-  { id: 'Aoede', label: 'Aoede (Gentle, Reassuring)' },
+  { id: 'ElevenLabs-Ayush', label: 'ElevenLabs v3 — Ayush M (Deep Doctor)' },
+  { id: 'ElevenLabs-Bill', label: 'ElevenLabs v3 — Bill (Wise Old Doctor)' },
+  { id: 'Charon', label: 'Gemini Original Voice — Charon (Mature, Calm Male Doctor)' },
+  { id: 'Fenrir', label: 'Gemini Original Voice — Fenrir (Deep, Authoritative Male)' },
+  { id: 'Kore', label: 'Gemini Original Voice — Kore (Warm, Empathetic Female)' },
+  { id: 'Puck', label: 'Gemini Original Voice — Puck (Engaging, Clear)' },
+  { id: 'Aoede', label: 'Gemini Original Voice — Aoede (Gentle, Reassuring)' },
 ] as const;
 
 export type VoiceName = (typeof AVAILABLE_VOICES)[number]['id'];
 
 export const DEFAULT_DOCTOR_VOICE: VoiceName = 'Charon';
+export const DEFAULT_ELEVENLABS_VOICE: VoiceName = 'ElevenLabs-Ayush';
 
 // Inactivity and Auto-Hangup Configuration
 export const INACTIVITY_TIMEOUT_SECONDS = 60; // 1-minute timeout if user does not respond

@@ -1,0 +1,458 @@
+{
+  "app/api/elevenlabs-tts/route.ts": {
+    "mtime": 1795114226.6969361,
+    "seen": 1795169752.9076285,
+    "ast_hash": "85f92a3a991918e64ec2c3ba4e0b6364",
+    "semantic_hash": ""
+  },
+  "app/api/generate-prescription/route.ts": {
+    "mtime": 1795085301.1598005,
+    "seen": 1795169752.9076285,
+    "ast_hash": "2f2e12d6bd8a22f8a98920a0ac64d05e",
+    "semantic_hash": ""
+  },
+  "app/api/live-token/route.ts": {
+    "mtime": 1794940137.1252446,
+    "seen": 1795169752.9076285,
+    "ast_hash": "78f1d430c9f3adc324da1f320363e756",
+    "semantic_hash": ""
+  },
+  "app/api/ocr-lab-report/route.ts": {
+    "mtime": 1795002836.85159,
+    "seen": 1795169752.9076285,
+    "ast_hash": "9370982f5a1d5c8f56f1318e82b32e38",
+    "semantic_hash": ""
+  },
+  "app/api/ocr-prescription/route.ts": {
+    "mtime": 1795000998.7941961,
+    "seen": 1795169752.9076285,
+    "ast_hash": "8ce70579fdeafa307f64fb4edd77034b",
+    "semantic_hash": ""
+  },
+  "app/api/save-consultation/route.ts": {
+    "mtime": 1795002836.8545642,
+    "seen": 1795169752.9076285,
+    "ast_hash": "d54a40c99ced00d4cc6dfb2effa30150",
+    "semantic_hash": ""
+  },
+  "app/layout.tsx": {
+    "mtime": 1795022728.5651376,
+    "seen": 1795169752.9076285,
+    "ast_hash": "a54bebd57fe918dcf3ead3f3b4338889",
+    "semantic_hash": ""
+  },
+  "app/manifest.ts": {
+    "mtime": 1795022728.5651376,
+    "seen": 1795169752.9076285,
+    "ast_hash": "a6c4635f161d4424645b37d5c9e88f87",
+    "semantic_hash": ""
+  },
+  "app/not-found.tsx": {
+    "mtime": 1794949926.705181,
+    "seen": 1795169752.9076285,
+    "ast_hash": "02e02854656363c67e9cfff496f93828",
+    "semantic_hash": ""
+  },
+  "app/page.tsx": {
+    "mtime": 1795113456.6629198,
+    "seen": 1795169752.9076285,
+    "ast_hash": "661ea80287760f0a1a219987b92bcb03",
+    "semantic_hash": ""
+  },
+  "app/records/page.tsx": {
+    "mtime": 1794949231.855582,
+    "seen": 1795169752.9076285,
+    "ast_hash": "3ff8151c1a7f9aace8529861f85c592a",
+    "semantic_hash": ""
+  },
+  "backend/app/api/endpoints.py": {
+    "mtime": 1795096421.9950356,
+    "seen": 1795169752.9076285,
+    "ast_hash": "ae0e5eadcf4850b9f899a4713642fa04",
+    "semantic_hash": ""
+  },
+  "backend/app/core/config.py": {
+    "mtime": 1795102815.6539688,
+    "seen": 1795169752.9076285,
+    "ast_hash": "30018d2fba41c76a58461756fd11a60a",
+    "semantic_hash": ""
+  },
+  "backend/app/core/security.py": {
+    "mtime": 1795096421.996095,
+    "seen": 1795169752.9076285,
+    "ast_hash": "4a33f8e351fb33cfe1a350686ab20e09",
+    "semantic_hash": ""
+  },
+  "backend/app/main.py": {
+    "mtime": 1795096421.996095,
+    "seen": 1795169752.9076285,
+    "ast_hash": "9194a76cd1a4bde5a802c02ecb3c8edd",
+    "semantic_hash": ""
+  },
+  "backend/app/services/langgraph_agent.py": {
+    "mtime": 1795084623.209979,
+    "seen": 1795169752.9076285,
+    "ast_hash": "0465f3592c88ef6461ecdbd9d8fba93f",
+    "semantic_hash": ""
+  },
+  "backend/app/services/memory_service.py": {
+    "mtime": 1795081992.7074964,
+    "seen": 1795169752.9076285,
+    "ast_hash": "2d6c68b5112d90e6029afb762dc8f5f0",
+    "semantic_hash": ""
+  },
+  "backend/app/services/neo4j_service.py": {
+    "mtime": 1795081981.8729901,
+    "seen": 1795169752.9076285,
+    "ast_hash": "5d318bae2196c4480f88eb86f588b71e",
+    "semantic_hash": ""
+  },
+  "backend/app/services/pharmacy_tools.py": {
+    "mtime": 1795084603.249088,
+    "seen": 1795169752.9076285,
+    "ast_hash": "4f36072fa55498e14d5cb42c1e50e1a2",
+    "semantic_hash": ""
+  },
+  "backend/app/services/prescription_service.py": {
+    "mtime": 1795084645.8271742,
+    "seen": 1795169752.9076285,
+    "ast_hash": "f443c552546c8185b9caa8b4de49b375",
+    "semantic_hash": ""
+  },
+  "backend/app/services/rag_chain.py": {
+    "mtime": 1795082008.2626927,
+    "seen": 1795169752.9076285,
+    "ast_hash": "dc2c0904d66c26dffddfb8277215c37f",
+    "semantic_hash": ""
+  },
+  "backend/app/services/records_db.py": {
+    "mtime": 1795096421.997162,
+    "seen": 1795169752.9076285,
+    "ast_hash": "ede9ecf6ccd5868bc712212bf709d686",
+    "semantic_hash": ""
+  },
+  "backend/check_medicines.py": {
+    "mtime": 1795102235.7469082,
+    "seen": 1795169752.9076285,
+    "ast_hash": "d0ab387b23a59dc363821be1bccd0a4e",
+    "semantic_hash": ""
+  },
+  "backend/deploy_ec2.sh": {
+    "mtime": 1795082091.8873477,
+    "seen": 1795169752.9076285,
+    "ast_hash": "31dcee15413b4907503eb06bc6e395c8",
+    "semantic_hash": ""
+  },
+  "backend/docker-compose.yml": {
+    "mtime": 1795082072.7842708,
+    "seen": 1795169752.9076285,
+    "ast_hash": "9ea940398ac3725c2bd108020e3d0f1c",
+    "semantic_hash": ""
+  },
+  "backend/scripts/ingest_kaggle_medicines.py": {
+    "mtime": 1795082063.8319457,
+    "seen": 1795169752.9076285,
+    "ast_hash": "21961590067f8de11f8a2bb63e0b5c79",
+    "semantic_hash": ""
+  },
+  "backend/setup_secure_server.sh": {
+    "mtime": 1795082398.2879357,
+    "seen": 1795169752.9076285,
+    "ast_hash": "ba814497dce079a7505839be1bbec4e4",
+    "semantic_hash": ""
+  },
+  "backend/setup_service.sh": {
+    "mtime": 1795096421.998247,
+    "seen": 1795169752.9076285,
+    "ast_hash": "92a7f6645161c75b55a94665c6ae9993",
+    "semantic_hash": ""
+  },
+  "backend/test_api.py": {
+    "mtime": 1795096421.99879,
+    "seen": 1795169752.9076285,
+    "ast_hash": "3539351d321f250dd3a7826bd97d048c",
+    "semantic_hash": ""
+  },
+  "backend/test_aura.py": {
+    "mtime": 1795101056.4715147,
+    "seen": 1795169752.9076285,
+    "ast_hash": "e47588344b16f404d56974fff6dc8938",
+    "semantic_hash": ""
+  },
+  "backend/test_query.py": {
+    "mtime": 1795102702.814706,
+    "seen": 1795169752.9076285,
+    "ast_hash": "446dc3ce40b1458a9547dee3e95efd7a",
+    "semantic_hash": ""
+  },
+  "components/DoctorAvatar.tsx": {
+    "mtime": 1795096421.9998024,
+    "seen": 1795169752.9076285,
+    "ast_hash": "2916fc3e8ea79d0fc3db88cdae12df82",
+    "semantic_hash": ""
+  },
+  "eslint.config.mjs": {
+    "mtime": 1794940137.193652,
+    "seen": 1795169752.9076285,
+    "ast_hash": "f6086aaddb0dbe7ea9579d764bcb6fb6",
+    "semantic_hash": ""
+  },
+  "hooks/useGeminiLive.ts": {
+    "mtime": 1795113403.5695896,
+    "seen": 1795169752.9076285,
+    "ast_hash": "a5f99ee9be2dede07dadf4800e25579b",
+    "semantic_hash": ""
+  },
+  "lib/aws-backend-client.ts": {
+    "mtime": 1795096422.0007985,
+    "seen": 1795169752.9076285,
+    "ast_hash": "a485685c2e4eab801a3e6ffbcc9752c2",
+    "semantic_hash": ""
+  },
+  "lib/constants.ts": {
+    "mtime": 1795113433.5929089,
+    "seen": 1795169752.9076285,
+    "ast_hash": "061a1294be0579249c45331c02413c99",
+    "semantic_hash": ""
+  },
+  "lib/error-utils.ts": {
+    "mtime": 1794940137.2505212,
+    "seen": 1795169752.9076285,
+    "ast_hash": "d7cfecf54cf906743cb354548009d7b9",
+    "semantic_hash": ""
+  },
+  "lib/fonts/mrs-saint-delafield-base64.ts": {
+    "mtime": 1794940137.2558565,
+    "seen": 1795169752.9076285,
+    "ast_hash": "8a11313f936dd2b49aaed260ea48d1ff",
+    "semantic_hash": ""
+  },
+  "lib/lab-report-ocr.ts": {
+    "mtime": 1795002836.8598397,
+    "seen": 1795169752.9076285,
+    "ast_hash": "94862ff6d07159af7bb92fe8dcc2402c",
+    "semantic_hash": ""
+  },
+  "lib/medication-utils.ts": {
+    "mtime": 1794940137.284353,
+    "seen": 1795169752.9076285,
+    "ast_hash": "fb8a8f1fa2253e97e82f85ed3ef23b5f",
+    "semantic_hash": ""
+  },
+  "lib/not-found-utils.ts": {
+    "mtime": 1794949926.705181,
+    "seen": 1795169752.9076285,
+    "ast_hash": "363aa12a142cbd417f947907f37ad5cf",
+    "semantic_hash": ""
+  },
+  "lib/prescription-fallback.ts": {
+    "mtime": 1795021190.1852658,
+    "seen": 1795169752.9076285,
+    "ast_hash": "ccfd8eef76ef6e67006868a278c70746",
+    "semantic_hash": ""
+  },
+  "lib/prescription-ocr.ts": {
+    "mtime": 1795000998.7986417,
+    "seen": 1795169752.9076285,
+    "ast_hash": "6a4b9382fe45e9c62644ee1b46c45756",
+    "semantic_hash": ""
+  },
+  "lib/prescription-pdf.ts": {
+    "mtime": 1795021190.185803,
+    "seen": 1795169752.9076285,
+    "ast_hash": "a1753e0ec8b6ee8eef2da158d629970d",
+    "semantic_hash": ""
+  },
+  "lib/records-utils.ts": {
+    "mtime": 1794946994.709382,
+    "seen": 1795169752.9076285,
+    "ast_hash": "54cd47694142f90fa9e4288d2493963f",
+    "semantic_hash": ""
+  },
+  "lib/supabase.ts": {
+    "mtime": 1794945569.024161,
+    "seen": 1795169752.9076285,
+    "ast_hash": "2d109fcd6c156cc6bd15b249e2e95337",
+    "semantic_hash": ""
+  },
+  "next.config.ts": {
+    "mtime": 1794940137.3152711,
+    "seen": 1795169752.9076285,
+    "ast_hash": "9267652e4446755f1a8608f27b67c949",
+    "semantic_hash": ""
+  },
+  "package.json": {
+    "mtime": 1794945569.0493484,
+    "seen": 1795169752.9076285,
+    "ast_hash": "79c82a85cde9c7b6ef78e85dc0bbca1b",
+    "semantic_hash": ""
+  },
+  "public/manifest.json": {
+    "mtime": 1795022728.5666673,
+    "seen": 1795169752.9076285,
+    "ast_hash": "bc6c1d8bef6750ad013a97d117a1dfbb",
+    "semantic_hash": ""
+  },
+  "scripts/seed-khushi-kumari.ts": {
+    "mtime": 1794945569.0849566,
+    "seen": 1795169752.9076285,
+    "ast_hash": "821e8b922fd12b58877cd908e682eede",
+    "semantic_hash": ""
+  },
+  "test/api-routes.test.ts": {
+    "mtime": 1794945569.1179204,
+    "seen": 1795169752.9076285,
+    "ast_hash": "b6780fcf58c2b999a0f26834b0aa705f",
+    "semantic_hash": ""
+  },
+  "test/consultation-flow.test.ts": {
+    "mtime": 1795021190.1863573,
+    "seen": 1795169752.9076285,
+    "ast_hash": "4f6be1bb06cdb6d0fa22eb91beb10b9b",
+    "semantic_hash": ""
+  },
+  "test/lab-report-ocr.test.ts": {
+    "mtime": 1795002836.8613489,
+    "seen": 1795169752.9076285,
+    "ast_hash": "e3c99f8640b14776ec2a6493f46e5b8f",
+    "semantic_hash": ""
+  },
+  "test/not-found.test.ts": {
+    "mtime": 1794949926.7067237,
+    "seen": 1795169752.9076285,
+    "ast_hash": "032e5babf57ea1521e7dc90cbead9e3b",
+    "semantic_hash": ""
+  },
+  "test/ocr-prescription.test.ts": {
+    "mtime": 1795000998.8001027,
+    "seen": 1795169752.9076285,
+    "ast_hash": "410157cca1daf8620e3dd65695f3d49a",
+    "semantic_hash": ""
+  },
+  "test/prescription-pdf.test.ts": {
+    "mtime": 1795021190.1874382,
+    "seen": 1795169752.9076285,
+    "ast_hash": "4bf97364f10f655b21e5eedf3f9812f5",
+    "semantic_hash": ""
+  },
+  "test/records-route.test.ts": {
+    "mtime": 1794946994.712219,
+    "seen": 1795169752.9076285,
+    "ast_hash": "812f205f5e2ded2ca9b7893375a238b8",
+    "semantic_hash": ""
+  },
+  "tsconfig.json": {
+    "mtime": 1794940137.3880782,
+    "seen": 1795169752.9076285,
+    "ast_hash": "c08f69024494a94c05d59662223df362",
+    "semantic_hash": ""
+  },
+  "types/consultation.ts": {
+    "mtime": 1795021190.187965,
+    "seen": 1795169752.9076285,
+    "ast_hash": "e05f226a452cb568a00e08810f825a1d",
+    "semantic_hash": ""
+  },
+  ".agents/rules/clinical-consultation-invariants.md": {
+    "mtime": 1795002836.85159,
+    "seen": 1795169752.9076285,
+    "ast_hash": "1aa1d7baa857ffb9da566646c9541c8a",
+    "semantic_hash": ""
+  },
+  ".agents/rules/supabase-emr-invariants.md": {
+    "mtime": 1794945568.9773264,
+    "seen": 1795169752.9076285,
+    "ast_hash": "5e758e95c688bde76418090015ea169a",
+    "semantic_hash": ""
+  },
+  "AGENTS.md": {
+    "mtime": 1794940137.080134,
+    "seen": 1795169752.9076285,
+    "ast_hash": "efb888862c9f94a087a633f105bfafb5",
+    "semantic_hash": ""
+  },
+  "README.md": {
+    "mtime": 1795096421.9920163,
+    "seen": 1795169752.9076285,
+    "ast_hash": "bb6758f04f3bf8328bcec0251ab1dd95",
+    "semantic_hash": ""
+  },
+  "backend/ARCHITECTURE_DEFENSE.md": {
+    "mtime": 1795098089.3199894,
+    "seen": 1795169752.9076285,
+    "ast_hash": "749b441f2035c7792eca3b2326bf3d70",
+    "semantic_hash": ""
+  },
+  "backend/README.md": {
+    "mtime": 1795085443.3082223,
+    "seen": 1795169752.9076285,
+    "ast_hash": "da75ed615a6d2d52c987055025585c8f",
+    "semantic_hash": ""
+  },
+  "backend/requirements.txt": {
+    "mtime": 1795084582.7545002,
+    "seen": 1795169752.9076285,
+    "ast_hash": "d1244a481ee0687f65e49f8ab34ae3f1",
+    "semantic_hash": ""
+  },
+  "app/icon.svg": {
+    "mtime": 1795022728.5641174,
+    "seen": 1795169752.9076285,
+    "ast_hash": "fb8b68ca459e07362ae2582ee3484d59",
+    "semantic_hash": ""
+  },
+  "docs/screenshots/prescription-camera-scanner.png": {
+    "mtime": 1795001210.6581142,
+    "seen": 1795169752.9076285,
+    "ast_hash": "671211fcbd148ed17ca9c81b7397a982",
+    "semantic_hash": ""
+  },
+  "docs/screenshots/prescription-ocr-options.png": {
+    "mtime": 1795001210.6601462,
+    "seen": 1795169752.9076285,
+    "ast_hash": "9376db003dfd23ccef085dec63c8d052",
+    "semantic_hash": ""
+  },
+  "public/favicon.svg": {
+    "mtime": 1795022728.5666673,
+    "seen": 1795169752.9076285,
+    "ast_hash": "fb8b68ca459e07362ae2582ee3484d59",
+    "semantic_hash": ""
+  },
+  "public/file.svg": {
+    "mtime": 1794940137.3182724,
+    "seen": 1795169752.9076285,
+    "ast_hash": "d09f95206c3fa0bb9bd9fefabfd0ea71",
+    "semantic_hash": ""
+  },
+  "public/globe.svg": {
+    "mtime": 1794940137.3328817,
+    "seen": 1795169752.9076285,
+    "ast_hash": "2aaafa6a49b6563925fe440891e32717",
+    "semantic_hash": ""
+  },
+  "public/icon.svg": {
+    "mtime": 1795022728.5666673,
+    "seen": 1795169752.9076285,
+    "ast_hash": "fb8b68ca459e07362ae2582ee3484d59",
+    "semantic_hash": ""
+  },
+  "public/next.svg": {
+    "mtime": 1794940137.3338897,
+    "seen": 1795169752.9076285,
+    "ast_hash": "8e061864f388b47f33a1c3780831193e",
+    "semantic_hash": ""
+  },
+  "public/vercel.svg": {
+    "mtime": 1794940137.3347552,
+    "seen": 1795169752.9076285,
+    "ast_hash": "c0af2f507b369b085b35ef4bbe3bcf1e",
+    "semantic_hash": ""
+  },
+  "public/window.svg": {
+    "mtime": 1794940137.3377674,
+    "seen": 1795169752.9076285,
+    "ast_hash": "a2760511c65806022ad20adf74370ff3",
+    "semantic_hash": ""
+  }
+}

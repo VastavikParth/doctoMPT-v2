@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import {
   Stethoscope,
   PhoneCall,
@@ -45,6 +46,8 @@ import {
 } from '@/lib/records-utils';
 
 export default function RecordsPage() {
+  const router = useRouter();
+
   // Theme state: light | dark (defaults to light for clean SSR hydration)
   const [theme, setTheme] = useState<'light' | 'dark'>('light');
   const [mounted, setMounted] = useState(false);
@@ -213,6 +216,16 @@ export default function RecordsPage() {
       });
       setTimeout(() => setDownloadToast(null), 5000);
     }
+  };
+
+  // Handle continuing conversation from records page
+  const handleContinueConversation = (record: SavedConsultation) => {
+    try {
+      localStorage.setItem('doctompt_resumed_consultation', JSON.stringify(record));
+    } catch (e) {
+      console.error('Failed to store resumed consultation in localStorage', e);
+    }
+    router.push(`/?resumeId=${encodeURIComponent(record.id)}`);
   };
 
   // Handle copy reference code
@@ -821,8 +834,17 @@ export default function RecordsPage() {
                           </p>
                         </div>
 
-                        {/* Reference code & PDF Action */}
+                        {/* Reference code & Actions: Continue Conversation & Download PDF */}
                         <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={() => handleContinueConversation(selectedRecord)}
+                            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white transition-colors shadow-xs cursor-pointer"
+                            title="Continue this consultation with Dr. DoctoMPT"
+                          >
+                            <PhoneCall className="w-3.5 h-3.5" />
+                            <span>Continue Conversation</span>
+                          </button>
                           {selectedRecord.prescription && (
                             <button
                               type="button"
@@ -1243,6 +1265,15 @@ export default function RecordsPage() {
                         <div className="flex items-center justify-end gap-2.5 pt-3 border-t border-slate-100 dark:border-neutral-800">
                           <button
                             type="button"
+                            onClick={() => handleContinueConversation(selectedRecord)}
+                            className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-700 text-white transition-colors shadow-xs cursor-pointer"
+                            title="Continue this consultation with Dr. DoctoMPT"
+                          >
+                            <PhoneCall className="w-3.5 h-3.5" />
+                            <span>Continue Conversation</span>
+                          </button>
+                          <button
+                            type="button"
                             onClick={() => handleDownloadPdf(selectedRecord.prescription, selectedRecord.id)}
                             className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-semibold bg-teal-600 hover:bg-teal-700 text-white transition-colors shadow-xs cursor-pointer"
                           >
@@ -1546,18 +1577,28 @@ export default function RecordsPage() {
                               </div>
                             </div>
 
-                            {/* Full-width Download PDF Button on Mobile */}
-                            <button
-                              type="button"
-                              onClick={() => handleDownloadPdf(item.prescription, item.id)}
-                              className="w-full mt-2 py-2.5 px-4 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold text-xs flex items-center justify-center gap-2 cursor-pointer shadow-xs transition-colors"
-                            >
-                              <Download className="w-3.5 h-3.5" />
-                              <span>Download Official Prescription PDF</span>
-                            </button>
+                            {/* Action Buttons on Mobile: Continue Conversation on left, Download PDF on right */}
+                            <div className="flex items-center gap-2 mt-2">
+                              <button
+                                type="button"
+                                onClick={() => handleContinueConversation(item)}
+                                className="flex-1 py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-xs transition-colors"
+                              >
+                                <PhoneCall className="w-3.5 h-3.5" />
+                                <span>Continue Conversation</span>
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDownloadPdf(item.prescription, item.id)}
+                                className="flex-1 py-2.5 px-3 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-xs transition-colors"
+                              >
+                                <Download className="w-3.5 h-3.5" />
+                                <span>Download PDF</span>
+                              </button>
+                            </div>
                           </div>
                         ) : (
-                          <div className="p-4 rounded-xl bg-slate-50 dark:bg-neutral-950 border border-slate-200 dark:border-neutral-800 text-center flex flex-col items-center justify-center gap-1.5 text-xs">
+                          <div className="p-4 rounded-xl bg-slate-50 dark:bg-neutral-950 border border-slate-200 dark:border-neutral-800 text-center flex flex-col items-center justify-center gap-2 text-xs">
                             <Pill className="w-5 h-5 text-slate-400 dark:text-neutral-600" />
                             <span className="font-semibold text-slate-700 dark:text-neutral-300">
                               Triage Consultation - No Prescription Issued
@@ -1565,6 +1606,14 @@ export default function RecordsPage() {
                             <p className="text-[11px] text-slate-500 dark:text-neutral-500 max-w-xs">
                               This session recorded conversational triage dialogue without generating a pharmacological prescription.
                             </p>
+                            <button
+                              type="button"
+                              onClick={() => handleContinueConversation(item)}
+                              className="mt-1 py-2 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-xs transition-colors"
+                            >
+                              <PhoneCall className="w-3.5 h-3.5" />
+                              <span>Continue Conversation</span>
+                            </button>
                           </div>
                         )}
                       </div>
