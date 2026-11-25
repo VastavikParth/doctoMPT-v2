@@ -143,6 +143,15 @@ export default function Home() {
   // Saved Consultations history from NoSQL database
   const [savedConsultations, setSavedConsultations] = useState<SavedConsultation[]>([]);
 
+  // Resumed previous consultation state
+  const [resumedSession, setResumedSession] = useState<{
+    id: string;
+    date: string;
+    patientName: string;
+    patientAge?: string;
+    chiefComplaint?: string;
+  } | null>(null);
+
   // AWS Backend Status
   const [awsBackendConnected, setAwsBackendConnected] = useState<boolean>(true);
 
@@ -175,7 +184,9 @@ export default function Home() {
     transcript,
     setTranscript,
     patientName,
+    setPatientName,
     patientAge,
+    setPatientAge,
     connect,
     disconnect,
     toggleMute,
@@ -410,8 +421,34 @@ export default function Home() {
       if (storedLang && CONSULTATION_LANGUAGES.some((l) => l.id === storedLang)) {
         setSelectedLanguage(storedLang);
       }
+
+      // Check if arriving from Records page to resume an existing consultation
+      try {
+        const rawResumed = localStorage.getItem('doctompt_resumed_consultation');
+        if (rawResumed) {
+          const record: SavedConsultation = JSON.parse(rawResumed);
+          if (record) {
+            if (Array.isArray(record.transcript) && record.transcript.length > 0) {
+              setTranscript(record.transcript);
+            }
+            if (record.patientName) setPatientName(record.patientName);
+            if (record.patientAge) setPatientAge(record.patientAge);
+            if (record.prescription) setPrescription(record.prescription);
+            setResumedSession({
+              id: record.id,
+              date: record.createdAt,
+              patientName: record.patientName,
+              patientAge: record.patientAge,
+              chiefComplaint: record.chiefComplaint || record.primaryCondition,
+            });
+          }
+          localStorage.removeItem('doctompt_resumed_consultation');
+        }
+      } catch (err) {
+        console.error('Error loading resumed consultation', err);
+      }
     } catch (e) {}
-  }, []);
+  }, [setTranscript, setPatientName, setPatientAge]);
 
   // Auto-scroll transcript container ONLY (never scroll the browser page/window on mobile)
   useEffect(() => {
@@ -442,6 +479,24 @@ export default function Home() {
     try {
       localStorage.setItem('doctor_voice', voice);
     } catch (e) {}
+  };
+
+  // Whether a consultation dialogue, prescription, or resumed session exists
+  const hasPreviousConversation =
+    transcript.length > 0 || prescription !== null || resumedSession !== null;
+
+  // Start a fresh consultation (clears existing transcript, patient info, and prescription)
+  const handleStartNewConsultation = () => {
+    disconnect();
+    setTranscript([]);
+    setPrescription(null);
+    setPatientName('');
+    setPatientAge('');
+    setResumedSession(null);
+    setPhysicalPrescription(null);
+    setLabReport(null);
+    resetInactivityTimer();
+    connect();
   };
 
   const handleLanguageChange = (lang: ConsultationLanguage) => {
@@ -1684,6 +1739,37 @@ export default function Home() {
             </div>
           </div>
 
+          {/* Resumed Previous Consultation Notice Banner */}
+          {resumedSession && (
+            <div className="w-full my-2 p-3 rounded-xl bg-teal-50 dark:bg-teal-950/60 border border-teal-300 dark:border-teal-700/80 text-teal-950 dark:text-teal-200 flex items-center justify-between gap-3 text-xs shadow-xs animate-in fade-in duration-200">
+              <div className="flex items-center gap-2.5 min-w-0">
+                <History className="w-4 h-4 text-teal-600 dark:text-teal-400 shrink-0" />
+                <div className="truncate">
+                  <span className="font-bold">Resumed Previous Consultation:</span>{' '}
+                  <span className="text-slate-600 dark:text-neutral-300">
+                    {resumedSession.patientName ? `Patient: ${resumedSession.patientName}` : 'Patient record'}
+                    {resumedSession.patientAge ? ` (${resumedSession.patientAge}y)` : ''} •{' '}
+                    {resumedSession.chiefComplaint || 'Consultation record'} •{' '}
+                    {new Date(resumedSession.date).toLocaleDateString()}
+                  </span>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setResumedSession(null);
+                  setTranscript([]);
+                  setPrescription(null);
+                  setPatientName('');
+                  setPatientAge('');
+                }}
+                className="text-[11px] font-semibold text-teal-700 dark:text-teal-400 hover:underline shrink-0 cursor-pointer"
+              >
+                Dismiss & Start Fresh
+              </button>
+            </div>
+          )}
+
           {/* Animated Doctor SVG Avatar with dynamic mouth opening and states */}
           <DoctorAvatar
             state={visualState}
@@ -1697,26 +1783,61 @@ export default function Home() {
           {/* Unified Consultation Action Flow (Single primary action per state) */}
           <div className="w-full mt-4 pt-4 border-t border-slate-100 dark:border-neutral-800/80 flex flex-col items-center gap-3">
             {!isConnected ? (
-              /* State 1 & 2: Disconnected / Connecting - Exactly ONE primary action button */
+              /* State 1 & 2: Disconnected / Connecting */
               <div className="w-full flex flex-col items-center gap-2">
-                <button
-                  type="button"
-                  onClick={connect}
-                  disabled={isConnecting}
-                  className="w-full py-3.5 px-6 rounded-xl font-semibold text-sm flex items-center justify-center gap-2.5 bg-teal-600 hover:bg-teal-700 text-white shadow-md shadow-teal-600/20 active:scale-[0.99] transition-all disabled:opacity-60 cursor-pointer"
-                >
-                  {isConnecting ? (
-                    <>
-                      <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                      <span>Connecting to Live Session...</span>
-                    </>
-                  ) : (
-                    <>
-                      <PhoneCall className="w-4 h-4 text-white" />
+                {!hasPreviousConversation ? (
+                  /* Initial load: exactly ONE button */
+                  <button
+                    type="button"
+                    onClick={connect}
+                    disabled={isConnecting}
+                    className="w-full py-3.5 px-6 rounded-xl font-semibold text-sm flex items-center justify-center gap-2.5 bg-teal-600 hover:bg-teal-700 text-white shadow-md shadow-teal-600/20 active:scale-[0.99] transition-all disabled:opacity-60 cursor-pointer"
+                  >
+                    {isConnecting ? (
+                      <>
+                        <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                        <span>Connecting to Live Session...</span>
+                      </>
+                    ) : (
+                      <>
+                        <PhoneCall className="w-4 h-4 text-white" />
+                        <span>Start Voice Consultation</span>
+                      </>
+                    )}
+                  </button>
+                ) : (
+                  /* After previous consultation or when resuming: TWO buttons */
+                  <div className="w-full flex flex-col sm:flex-row items-center gap-2.5">
+                    <button
+                      type="button"
+                      onClick={connect}
+                      disabled={isConnecting}
+                      className="w-full sm:flex-1 py-3.5 px-4 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white shadow-md shadow-emerald-600/20 active:scale-[0.99] transition-all disabled:opacity-60 cursor-pointer"
+                    >
+                      {isConnecting ? (
+                        <>
+                          <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          <span>Connecting to Session...</span>
+                        </>
+                      ) : (
+                        <>
+                          <PhoneCall className="w-4 h-4 text-white" />
+                          <span>Continue with Previous Conversation</span>
+                        </>
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={handleStartNewConsultation}
+                      disabled={isConnecting}
+                      className="w-full sm:w-auto py-3.5 px-5 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 bg-slate-100 dark:bg-neutral-800 hover:bg-slate-200 dark:hover:bg-neutral-700 text-slate-700 dark:text-neutral-200 border border-slate-200 dark:border-neutral-700 active:scale-[0.99] transition-all cursor-pointer"
+                      title="Clear session and start fresh consultation"
+                    >
+                      <RotateCcw className="w-4 h-4 text-slate-500 dark:text-neutral-400" />
                       <span>Start Voice Consultation</span>
-                    </>
-                  )}
-                </button>
+                    </button>
+                  </div>
+                )}
 
                 {/* Developer / Demo fallback (subtle, non-competing) */}
                 {devMode && (
