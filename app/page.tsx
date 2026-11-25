@@ -1706,15 +1706,9 @@ export default function Home() {
               </p>
             </div>
             <div className="text-right">
-              {devMode ? (
-                <span className="text-[11px] font-mono text-teal-700 dark:text-teal-400 bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800/50 px-2 py-0.5 rounded-md font-semibold">
-                  gemini-3.8-live
-                </span>
-              ) : (
-                <span className="text-[11px] font-semibold text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800/50 px-2.5 py-0.5 rounded-full">
-                  Virtual Clinic
-                </span>
-              )}
+              <span className="text-[11px] font-semibold text-teal-700 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800/50 px-2.5 py-0.5 rounded-full">
+                Virtual Clinic
+              </span>
             </div>
           </div>
 
@@ -2752,7 +2746,7 @@ export default function Home() {
                     Medical Prescription (Rx) Generator
                   </h3>
                   <span className="text-[10px] font-mono text-emerald-700 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800/50 px-2 py-0.5 rounded-md font-semibold">
-                    gemini-2.5-flash
+                    gemini-3.5-flash-lite
                   </span>
                 </div>
                 <p className="text-xs text-slate-500 dark:text-neutral-400 mt-0.5">
