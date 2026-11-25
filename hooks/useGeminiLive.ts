@@ -181,6 +181,13 @@ export function useGeminiLive({
         if (!res.ok) {
           const errText = await res.text();
           console.warn('[ElevenLabs TTS] API returned error:', errText);
+          setSpeakerLevel(0);
+          setVisualState((prev) => (prev === 'speaking' ? 'listening' : prev));
+          if (errText.includes('quota_exceeded')) {
+            setStatusText('ElevenLabs quota exceeded (0 credits left). Switch voice or update key.');
+          } else {
+            setStatusText('ElevenLabs audio unavailable.');
+          }
           return;
         }
 

@@ -414,11 +414,7 @@ export default function Home() {
       }
 
       const storedVoice = localStorage.getItem('doctor_voice') as VoiceName;
-      if (
-        storedVoice &&
-        storedVoice.startsWith('ElevenLabs-') &&
-        AVAILABLE_VOICES.some((v) => v.id === storedVoice)
-      ) {
+      if (storedVoice && AVAILABLE_VOICES.some((v) => v.id === storedVoice)) {
         setSelectedVoice(storedVoice);
       } else {
         setSelectedVoice(DEFAULT_ELEVENLABS_VOICE);
@@ -1405,10 +1401,19 @@ export default function Home() {
                   <Volume2 className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
                   Voice Profile
                 </span>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1.5 flex-wrap justify-end">
                   <span className="text-[10px] text-teal-600 dark:text-teal-400 font-mono">
                     {selectedVoice}
                   </span>
+                  <button
+                    type="button"
+                    onClick={() => handleVoiceChange(DEFAULT_DOCTOR_VOICE)}
+                    disabled={isConnected || isConnecting}
+                    className="text-[10px] px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-800 hover:bg-blue-100 cursor-pointer disabled:opacity-50 font-semibold"
+                    title="Switch to Gemini Original Voice (Charon)"
+                  >
+                    Gemini Original
+                  </button>
                   <button
                     type="button"
                     onClick={handleResetVoice}
