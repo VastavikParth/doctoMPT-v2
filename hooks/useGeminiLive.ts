@@ -190,7 +190,14 @@ export function useGeminiLive({
           return;
         }
 
-        if (!audioContextRef.current) return;
+        if (!audioContextRef.current || audioContextRef.current.state === 'closed') {
+          const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
+          audioContextRef.current = new AudioCtx();
+          nextPlayTimeRef.current = 0;
+        }
+        if (audioContextRef.current.state === 'suspended') {
+          await audioContextRef.current.resume().catch(() => {});
+        }
         const audioBuf = await audioContextRef.current.decodeAudioData(arrayBuf);
         if (speechId !== currentSpeechIdRef.current) {
           // Interrupted while decoding
@@ -854,68 +861,36 @@ RETURNING PATIENT ACCESS RULE: When a patient identifies themselves (e.g. Alex) 
     });
   }, []);
 
-  // Speak text using browser speech synthesis with animated doctor mouth movements
-  const speakDoctorText = useCallback((text: string, onComplete?: () => void) => {
-    if (typeof window === 'undefined') return;
+  // Speak text using the configured ElevenLabs doctor voice (never harsh OS speechSynthesis)
+  const speakDoctorText = useCallback(
+    (text: string, onComplete?: () => void) => {
+      if (typeof window === 'undefined' || !text.trim()) return;
 
-    // Add to transcript
-    setTranscript((prev) => [
-      ...prev,
-      {
-        id: `sim_doc_${Date.now()}`,
-        role: 'doctor',
-        text,
-        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      },
-    ]);
+      // Cancel any lingering browser speech synthesis just in case
+      if (window.speechSynthesis) {
+        try {
+          window.speechSynthesis.cancel();
+        } catch (e) {}
+      }
 
-    if (!window.speechSynthesis) {
-      setStatusText('Dr. DoctoMPT replied.');
-      setVisualState('listening');
-      if (onComplete) onComplete();
-      return;
-    }
+      // Add to transcript
+      setTranscript((prev) => [
+        ...prev,
+        {
+          id: `sim_doc_${Date.now()}`,
+          role: 'doctor',
+          text,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        },
+      ]);
 
-    window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.rate = 1.0;
-    utterance.pitch = 1.0;
-
-    // Pick appropriate voice
-    const voices = window.speechSynthesis.getVoices();
-    const englishVoice = voices.find((v) => v.lang.startsWith('en') && (v.name.includes('Natural') || v.name.includes('Google') || v.name.includes('Doctor') || v.name.includes('David') || v.name.includes('Male')));
-    if (englishVoice) utterance.voice = englishVoice;
-
-    setVisualState('speaking');
-    setStatusText('Dr. DoctoMPT is speaking...');
-
-    // Oscillate speakerLevel to drive SVG mouth opening/closing
-    let simInterval: any = null;
-    let tick = 0;
-    simInterval = setInterval(() => {
-      tick++;
-      const osc = Math.abs(Math.sin(tick * 0.4)) * 0.7 + 0.2;
-      setSpeakerLevel(osc);
-    }, 80);
-
-    utterance.onend = () => {
-      clearInterval(simInterval);
-      setSpeakerLevel(0);
-      setVisualState('listening');
-      setStatusText('Dr. DoctoMPT is listening to you...');
-      if (onComplete) onComplete();
-    };
-
-    utterance.onerror = () => {
-      clearInterval(simInterval);
-      setSpeakerLevel(0);
-      setVisualState('listening');
-      setStatusText('Doctor is listening.');
-      if (onComplete) onComplete();
-    };
-
-    window.speechSynthesis.speak(utterance);
-  }, []);
+      const targetVoice = voiceName.startsWith('ElevenLabs-') ? voiceName : 'ElevenLabs-Ayush';
+      playElevenLabsSpeech(text, targetVoice).finally(() => {
+        if (onComplete) onComplete();
+      });
+    },
+    [playElevenLabsSpeech, voiceName]
+  );
 
   // Send manual text fallback (for noisy venue / mic unavailable)
   const sendTextMessage = useCallback(

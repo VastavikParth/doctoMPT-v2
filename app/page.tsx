@@ -109,15 +109,18 @@ export default function Home() {
   const [savedSuccessMessage, setSavedSuccessMessage] = useState<string | null>(null);
   const [isSavingToDb, setIsSavingToDb] = useState(false);
 
-  // Physical Prescription Upload & OCR State
-  const [physicalPrescription, setPhysicalPrescription] = useState<PhysicalPrescriptionOCR | null>(null);
+  // Physical Prescription Upload & OCR State (supports multiple uploaded prescriptions)
+  const [physicalPrescriptions, setPhysicalPrescriptions] = useState<PhysicalPrescriptionOCR[]>([]);
+  const physicalPrescription = physicalPrescriptions[physicalPrescriptions.length - 1] ?? null;
   const [isProcessingOcr, setIsProcessingOcr] = useState(false);
   const [ocrError, setOcrError] = useState<string | null>(null);
   const [showOcrDetails, setShowOcrDetails] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  // Laboratory Tests & Diagnostic Reports OCR State
-  const [labReport, setLabReport] = useState<LabReportOCR | null>(null);
+  // Laboratory Tests & Diagnostic Reports OCR State (supports multiple uploaded reports)
+  const [labReports, setLabReports] = useState<LabReportOCR[]>([]);
+  const labReport = labReports[labReports.length - 1] ?? null;
+  const [hasUnreviewedDocs, setHasUnreviewedDocs] = useState(false);
   const [isProcessingLabOcr, setIsProcessingLabOcr] = useState(false);
   const [labOcrError, setLabOcrError] = useState<string | null>(null);
   const [showLabOcrDetails, setShowLabOcrDetails] = useState(true);
@@ -411,10 +414,17 @@ export default function Home() {
       }
 
       const storedVoice = localStorage.getItem('doctor_voice') as VoiceName;
-      if (storedVoice && AVAILABLE_VOICES.some((v) => v.id === storedVoice)) {
+      if (
+        storedVoice &&
+        storedVoice.startsWith('ElevenLabs-') &&
+        AVAILABLE_VOICES.some((v) => v.id === storedVoice)
+      ) {
         setSelectedVoice(storedVoice);
       } else {
-        setSelectedVoice(DEFAULT_DOCTOR_VOICE);
+        setSelectedVoice(DEFAULT_ELEVENLABS_VOICE);
+        try {
+          localStorage.setItem('doctor_voice', DEFAULT_ELEVENLABS_VOICE);
+        } catch {}
       }
 
       const storedLang = localStorage.getItem('doctor_language') as ConsultationLanguage;
@@ -481,6 +491,13 @@ export default function Home() {
     } catch (e) {}
   };
 
+  const handleResetVoice = () => {
+    setSelectedVoice(DEFAULT_ELEVENLABS_VOICE);
+    try {
+      localStorage.setItem('doctor_voice', DEFAULT_ELEVENLABS_VOICE);
+    } catch (e) {}
+  };
+
   // Whether a consultation dialogue, prescription, or resumed session exists
   const hasPreviousConversation =
     transcript.length > 0 || prescription !== null || resumedSession !== null;
@@ -493,8 +510,9 @@ export default function Home() {
     setPatientName('');
     setPatientAge('');
     setResumedSession(null);
-    setPhysicalPrescription(null);
-    setLabReport(null);
+    setPhysicalPrescriptions([]);
+    setLabReports([]);
+    setHasUnreviewedDocs(false);
     resetInactivityTimer();
     connect();
   };
@@ -746,8 +764,9 @@ export default function Home() {
       }
 
       const ocrResult: PhysicalPrescriptionOCR = data.prescription;
-      setPhysicalPrescription(ocrResult);
+      setPhysicalPrescriptions((prev) => [...prev, ocrResult]);
       setShowOcrDetails(true);
+      setHasUnreviewedDocs(true);
 
       const medsSummary = (ocrResult.medications || [])
         .map((m) => `${m.form ? m.form + ' ' : ''}${m.name} ${m.dosage || ''} (${m.frequency || ''} ${m.timing || ''})`.trim())
@@ -764,25 +783,6 @@ export default function Home() {
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         },
       ]);
-
-      const doctorAckText = ocrResult.doctorName
-        ? `Thank you for taking a picture of your prescription from ${ocrResult.doctorName}. I have examined the doctor's handwriting through medical OCR: they diagnosed ${ocrResult.diagnosis || 'your condition'} and prescribed ${(ocrResult.medications || []).slice(0, 2).map((m) => m.name).join(' and ')}. Let's review how this treatment has been working for you.`
-        : `I've analyzed your captured physical prescription. I can read the doctor's handwriting and previous medications: ${(ocrResult.medications || []).slice(0, 2).map((m) => m.name).join(' and ')}. How have your symptoms progressed since taking these?`;
-
-      setTimeout(() => {
-        setTranscript((prev) => [
-          ...prev,
-          {
-            id: (Date.now() + 1).toString(),
-            role: 'doctor',
-            text: doctorAckText,
-            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          },
-        ]);
-        if (speakDoctorText) {
-          speakDoctorText(doctorAckText);
-        }
-      }, 700);
     } catch (err: any) {
       console.error('Prescription OCR capture error:', err);
       setOcrError(err?.message || 'Error processing prescription photo');
@@ -795,8 +795,9 @@ export default function Home() {
   const loadSamplePrescription = () => {
     closeCameraModal();
     const sample = synthesizeFallbackOcr('sample-apollo-prescription.pdf');
-    setPhysicalPrescription(sample);
+    setPhysicalPrescriptions((prev) => [...prev, sample]);
     setShowOcrDetails(true);
+    setHasUnreviewedDocs(true);
 
     const medsSummary = (sample.medications || [])
       .map((m) => `${m.form ? m.form + ' ' : ''}${m.name} ${m.dosage || ''} (${m.frequency || ''} ${m.timing || ''})`.trim())
@@ -813,23 +814,6 @@ export default function Home() {
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       },
     ]);
-
-    const doctorAckText = `Thank you for sharing your previous prescription from ${sample.doctorName}. I have examined the doctor's handwriting through medical OCR: they diagnosed ${sample.diagnosis} and prescribed ${sample.medications.slice(0, 2).map((m) => m.name).join(' and ')}. Let's review how this treatment has been working for you.`;
-
-    setTimeout(() => {
-      setTranscript((prev) => [
-        ...prev,
-        {
-          id: (Date.now() + 1).toString(),
-          role: 'doctor',
-          text: doctorAckText,
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        },
-      ]);
-      if (speakDoctorText) {
-        speakDoctorText(doctorAckText);
-      }
-    }, 700);
   };
 
   // Start in-browser camera stream (like Google Meet in Chrome, no native camera app)
@@ -939,9 +923,10 @@ export default function Home() {
       }
 
       const ocrResult: LabReportOCR = data.labReport;
-      setLabReport(ocrResult);
+      setLabReports((prev) => [...prev, ocrResult]);
       setShowLabOcrDetails(true);
       setActiveDocOcrTab('lab');
+      setHasUnreviewedDocs(true);
 
       const abnormalSummary = ocrResult.abnormalFindings && ocrResult.abnormalFindings.length > 0
         ? ocrResult.abnormalFindings.join('; ')
@@ -958,25 +943,6 @@ export default function Home() {
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         },
       ]);
-
-      const doctorAckText = ocrResult.abnormalFindings && ocrResult.abnormalFindings.length > 0
-        ? `Thank you for sharing your lab report from ${ocrResult.laboratoryName || 'the laboratory'}. I have reviewed your test values and flagged the key deviations: ${ocrResult.abnormalFindings.slice(0, 2).join(' and ')}. Let's review these clinical findings and discuss what they mean for your care.`
-        : `I have analyzed your laboratory report from ${ocrResult.laboratoryName || 'the laboratory'}. Your blood counts and tested parameters look stable and within baseline limits. How are you feeling overall right now?`;
-
-      setTimeout(() => {
-        setTranscript((prev) => [
-          ...prev,
-          {
-            id: (Date.now() + 1).toString(),
-            role: 'doctor',
-            text: doctorAckText,
-            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          },
-        ]);
-        if (speakDoctorText) {
-          speakDoctorText(doctorAckText);
-        }
-      }, 700);
     } catch (err: any) {
       console.error('Lab report OCR error:', err);
       setLabOcrError(err?.message || 'Error processing lab report');
@@ -985,78 +951,65 @@ export default function Home() {
     }
   };
 
-  // Handle lab report file upload & OCR processing
+  // Handle lab report file upload & OCR processing (supports multiple files)
   const handleLabFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
 
     setIsProcessingLabOcr(true);
     setLabOcrError(null);
 
     try {
-      const formData = new FormData();
-      formData.append('file', file);
+      for (const file of files) {
+        const formData = new FormData();
+        formData.append('file', file);
 
-      const headers: Record<string, string> = {};
-      if (apiKey) {
-        headers['x-gemini-api-key'] = apiKey;
-      }
+        const headers: Record<string, string> = {};
+        if (apiKey) {
+          headers['x-gemini-api-key'] = apiKey;
+        }
 
-      const res = await fetch('/api/ocr-lab-report', {
-        method: 'POST',
-        headers,
-        body: formData,
-      });
+        const res = await fetch('/api/ocr-lab-report', {
+          method: 'POST',
+          headers,
+          body: formData,
+        });
 
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        throw new Error(data.error || 'Failed to process laboratory report OCR');
-      }
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          throw new Error(data.error || `Failed to process laboratory report OCR for ${file.name}`);
+        }
 
-      const ocrResult: LabReportOCR = data.labReport;
-      setLabReport(ocrResult);
-      setShowLabOcrDetails(true);
-      setActiveDocOcrTab('lab');
+        const ocrResult: LabReportOCR = data.labReport;
+        setLabReports((prev) => [...prev, ocrResult]);
+        setShowLabOcrDetails(true);
+        setActiveDocOcrTab('lab');
+        setHasUnreviewedDocs(true);
 
-      const abnormalSummary = ocrResult.abnormalFindings && ocrResult.abnormalFindings.length > 0
-        ? ocrResult.abnormalFindings.join('; ')
-        : 'All tested parameters within normal reference ranges';
+        const abnormalSummary = ocrResult.abnormalFindings && ocrResult.abnormalFindings.length > 0
+          ? ocrResult.abnormalFindings.join('; ')
+          : 'All tested parameters within normal reference ranges';
 
-      const uploadNotice = `[Uploaded Diagnostic Laboratory Report from ${ocrResult.laboratoryName || 'Diagnostic Lab'}: Impression: ${ocrResult.overallImpression}. Abnormal Findings: ${abnormalSummary}]`;
+        const uploadNotice = `[Uploaded Diagnostic Laboratory Report (${file.name}) from ${ocrResult.laboratoryName || 'Diagnostic Lab'}: Impression: ${ocrResult.overallImpression}. Abnormal Findings: ${abnormalSummary}]`;
 
-      setTranscript((prev) => [
-        ...prev,
-        {
-          id: Date.now().toString(),
-          role: 'patient',
-          text: uploadNotice,
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        },
-      ]);
-
-      const doctorAckText = ocrResult.abnormalFindings && ocrResult.abnormalFindings.length > 0
-        ? `Thank you for sharing your lab report from ${ocrResult.laboratoryName || 'the laboratory'}. I have reviewed your test values and flagged the key deviations: ${ocrResult.abnormalFindings.slice(0, 2).join(' and ')}. Let's review these clinical findings and discuss what they mean for your care.`
-        : `I have analyzed your laboratory report from ${ocrResult.laboratoryName || 'the laboratory'}. Your blood counts and tested parameters look stable and within baseline limits. How are you feeling overall right now?`;
-
-      setTimeout(() => {
         setTranscript((prev) => [
           ...prev,
           {
-            id: (Date.now() + 1).toString(),
-            role: 'doctor',
-            text: doctorAckText,
+            id: `${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+            role: 'patient',
+            text: uploadNotice,
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           },
         ]);
-        if (speakDoctorText) {
-          speakDoctorText(doctorAckText);
-        }
-      }, 700);
+      }
     } catch (err: any) {
       console.error('Lab report OCR upload error:', err);
       setLabOcrError(err?.message || 'Error uploading lab report');
     } finally {
       setIsProcessingLabOcr(false);
+      if (labFileInputRef.current) {
+        labFileInputRef.current.value = '';
+      }
     }
   };
 
@@ -1064,9 +1017,10 @@ export default function Home() {
   const loadSampleLabReport = () => {
     closeCameraModal();
     const sample = synthesizeFallbackLabReport('dr-lal-pathlabs-cbc-report.pdf');
-    setLabReport(sample);
+    setLabReports((prev) => [...prev, sample]);
     setShowLabOcrDetails(true);
     setActiveDocOcrTab('lab');
+    setHasUnreviewedDocs(true);
 
     const abnormalSummary = sample.abnormalFindings && sample.abnormalFindings.length > 0
       ? sample.abnormalFindings.join('; ')
@@ -1083,23 +1037,6 @@ export default function Home() {
         timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       },
     ]);
-
-    const doctorAckText = `Thank you for sharing your lab report from ${sample.laboratoryName}. I have reviewed your test values and flagged the key deviations: ${sample.abnormalFindings.slice(0, 2).join(' and ')}. Let's review these clinical findings and discuss what they mean for your care.`;
-
-    setTimeout(() => {
-      setTranscript((prev) => [
-        ...prev,
-        {
-          id: (Date.now() + 1).toString(),
-          role: 'doctor',
-          text: doctorAckText,
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        },
-      ]);
-      if (speakDoctorText) {
-        speakDoctorText(doctorAckText);
-      }
-    }, 700);
   };
 
   // Capture photo from video feed and send directly to OCR
@@ -1127,75 +1064,58 @@ export default function Home() {
     }
   };
 
-  // Handle prescription file upload & OCR processing
+  // Handle prescription file upload & OCR processing (supports multiple files)
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
 
     setIsProcessingOcr(true);
     setOcrError(null);
 
     try {
-      const formData = new FormData();
-      formData.append('file', file);
+      for (const file of files) {
+        const formData = new FormData();
+        formData.append('file', file);
 
-      const headers: Record<string, string> = {};
-      if (apiKey) {
-        headers['x-gemini-api-key'] = apiKey;
-      }
+        const headers: Record<string, string> = {};
+        if (apiKey) {
+          headers['x-gemini-api-key'] = apiKey;
+        }
 
-      const res = await fetch('/api/ocr-prescription', {
-        method: 'POST',
-        headers,
-        body: formData,
-      });
+        const res = await fetch('/api/ocr-prescription', {
+          method: 'POST',
+          headers,
+          body: formData,
+        });
 
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        throw new Error(data.error || 'Failed to process prescription OCR');
-      }
+        const data = await res.json();
+        if (!res.ok || !data.success) {
+          throw new Error(data.error || `Failed to process prescription OCR for ${file.name}`);
+        }
 
-      const ocrResult: PhysicalPrescriptionOCR = data.prescription;
-      setPhysicalPrescription(ocrResult);
-      setShowOcrDetails(true);
+        const ocrResult: PhysicalPrescriptionOCR = data.prescription;
+        setPhysicalPrescriptions((prev) => [...prev, ocrResult]);
+        setShowOcrDetails(true);
+        setHasUnreviewedDocs(true);
 
-      // Construct a concise summary for Dr. DoctoMPT and the consultation record
-      const medsSummary = (ocrResult.medications || [])
-        .map((m) => `${m.form ? m.form + ' ' : ''}${m.name} ${m.dosage || ''} (${m.frequency || ''} ${m.timing || ''})`.trim())
-        .join(', ');
+        // Construct a concise summary for Dr. DoctoMPT and the consultation record
+        const medsSummary = (ocrResult.medications || [])
+          .map((m) => `${m.form ? m.form + ' ' : ''}${m.name} ${m.dosage || ''} (${m.frequency || ''} ${m.timing || ''})`.trim())
+          .join(', ');
 
-      const uploadNotice = `[Uploaded Physical Doctor Prescription from ${ocrResult.doctorName || 'Previous Doctor'} (${ocrResult.clinicOrHospital || 'Clinic'}): Diagnosed: ${ocrResult.diagnosis || 'Clinical condition'}. Prescribed: ${medsSummary || 'Medications'}. Doctor advice: ${ocrResult.advice?.join('; ') || 'Follow-up'}]`;
+        const uploadNotice = `[Uploaded Physical Doctor Prescription (${file.name}) from ${ocrResult.doctorName || 'Previous Doctor'} (${ocrResult.clinicOrHospital || 'Clinic'}): Diagnosed: ${ocrResult.diagnosis || 'Clinical condition'}. Prescribed: ${medsSummary || 'Medications'}. Doctor advice: ${ocrResult.advice?.join('; ') || 'Follow-up'}]`;
 
-      // Append patient upload turn to transcript
-      setTranscript((prev) => [
-        ...prev,
-        {
-          id: Date.now().toString(),
-          role: 'patient',
-          text: uploadNotice,
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        },
-      ]);
-
-      // Dr. DoctoMPT responds to acknowledge the physical prescription
-      const doctorAckText = ocrResult.doctorName
-        ? `Thank you for sharing your previous prescription from ${ocrResult.doctorName}. I have examined the doctor's handwriting through medical OCR: they diagnosed ${ocrResult.diagnosis || 'your condition'} and prescribed ${(ocrResult.medications || []).slice(0, 2).map((m) => m.name).join(' and ')}. Let's review how this treatment has been working for you.`
-        : `I've analyzed your uploaded physical prescription. I can read the doctor's handwriting and previous medications: ${(ocrResult.medications || []).slice(0, 2).map((m) => m.name).join(' and ')}. How have your symptoms progressed since taking these?`;
-
-      setTimeout(() => {
+        // Append patient upload turn to transcript
         setTranscript((prev) => [
           ...prev,
           {
-            id: (Date.now() + 1).toString(),
-            role: 'doctor',
-            text: doctorAckText,
+            id: `${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
+            role: 'patient',
+            text: uploadNotice,
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           },
         ]);
-        if (speakDoctorText) {
-          speakDoctorText(doctorAckText);
-        }
-      }, 700);
+      }
     } catch (err: any) {
       console.error('Prescription OCR upload error:', err);
       setOcrError(err?.message || 'Error uploading prescription document');
@@ -1204,6 +1124,49 @@ export default function Home() {
       if (fileInputRef.current) {
         fileInputRef.current.value = '';
       }
+    }
+  };
+
+  // Notify doctor once the user has finished uploading all prescriptions & lab reports
+  const handleSendAllDocumentsToDoctor = () => {
+    const docSummaries: string[] = [];
+
+    physicalPrescriptions.forEach((rx, idx) => {
+      const meds = (rx.medications || [])
+        .map((m) => `${m.form ? m.form + ' ' : ''}${m.name} ${m.dosage || ''} (${m.frequency || ''})`.trim())
+        .join(', ');
+      docSummaries.push(
+        `Prescription ${idx + 1}: Dr. ${rx.doctorName || 'Previous Doctor'} (${rx.clinicOrHospital || 'Clinic'}), Diagnosis: ${rx.diagnosis || 'N/A'}, Medications: ${meds || 'N/A'}`
+      );
+    });
+
+    labReports.forEach((lab, idx) => {
+      const abnormal = lab.abnormalFindings?.length
+        ? lab.abnormalFindings.join('; ')
+        : 'Within normal ranges';
+      docSummaries.push(
+        `Lab Report ${idx + 1}: ${lab.laboratoryName || 'Diagnostic Lab'}, Impression: ${lab.overallImpression || 'N/A'}, Abnormal Findings: ${abnormal}`
+      );
+    });
+
+    const patientPrompt = `Yes, doctor, I have uploaded all the documents over here (${physicalPrescriptions.length} prescription(s), ${labReports.length} lab report(s)). Can you please take a look into all of these things?\n\nUploaded Documents Summary:\n${docSummaries.join('\n')}`;
+
+    setHasUnreviewedDocs(false);
+
+    if (isConnected) {
+      sendTextMessage(patientPrompt);
+      resetInactivityTimer();
+    } else {
+      setTranscript((prev) => [
+        ...prev,
+        {
+          id: `turn_${Date.now()}_docs_ready`,
+          role: 'patient',
+          text: patientPrompt,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        },
+      ]);
+      connect();
     }
   };
 
@@ -1442,9 +1405,20 @@ export default function Home() {
                   <Volume2 className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
                   Voice Profile
                 </span>
-                <span className="text-[10px] text-teal-600 dark:text-teal-400 font-mono">
-                  {selectedVoice}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] text-teal-600 dark:text-teal-400 font-mono">
+                    {selectedVoice}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleResetVoice}
+                    disabled={isConnected || isConnecting}
+                    className="text-[10px] px-2 py-0.5 rounded bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300 border border-teal-200 dark:border-teal-800 hover:bg-teal-100 cursor-pointer disabled:opacity-50 font-semibold"
+                    title="Reset to default ElevenLabs doctor voice"
+                  >
+                    Reset Voice
+                  </button>
+                </div>
               </div>
               <select
                 value={selectedVoice}
@@ -1952,6 +1926,7 @@ export default function Home() {
                 ref={fileInputRef}
                 onChange={handleFileUpload}
                 accept=".pdf,image/png,image/jpeg,image/jpg,image/webp"
+                multiple
                 className="hidden"
               />
 
@@ -2017,13 +1992,13 @@ export default function Home() {
                       <button
                         type="button"
                         onClick={() => {
-                          setPhysicalPrescription(null);
+                          setPhysicalPrescriptions([]);
                           setShowOcrDetails(false);
                         }}
                         className="text-[10px] text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
-                        title="Remove prescription"
+                        title="Remove prescriptions"
                       >
-                        Clear
+                        Clear {physicalPrescriptions.length > 1 ? `All (${physicalPrescriptions.length})` : ''}
                       </button>
                     </div>
 
@@ -2160,6 +2135,7 @@ export default function Home() {
                     ref={labFileInputRef}
                     onChange={handleLabFileUpload}
                     accept=".pdf,image/png,image/jpeg,image/jpg,image/webp"
+                    multiple
                     className="hidden"
                   />
 
@@ -2230,13 +2206,13 @@ export default function Home() {
                           <button
                             type="button"
                             onClick={() => {
-                              setLabReport(null);
+                              setLabReports([]);
                               setShowLabOcrDetails(false);
                             }}
                             className="text-[10px] text-slate-400 hover:text-rose-600 transition-colors cursor-pointer"
-                            title="Remove lab report"
+                            title="Remove lab reports"
                           >
-                            Clear
+                            Clear {labReports.length > 1 ? `All (${labReports.length})` : ''}
                           </button>
                         </div>
 
@@ -2350,6 +2326,37 @@ export default function Home() {
                     </div>
                   )}
                 </>
+              )}
+
+              {/* Unified Document Review Trigger: Show & Tell Doctor once done uploading */}
+              {(physicalPrescriptions.length > 0 || labReports.length > 0) && (
+                <div className="mt-3 pt-3 border-t border-teal-200/70 dark:border-teal-800/60 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div className="text-[11px] text-slate-700 dark:text-neutral-300">
+                    <span className="font-bold text-teal-800 dark:text-teal-300">
+                      {physicalPrescriptions.length + labReports.length} Document(s) Attached
+                    </span>{' '}
+                    <span className="text-slate-500 dark:text-neutral-400">
+                      ({physicalPrescriptions.length} Rx, {labReports.length} Lab)
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleSendAllDocumentsToDoctor}
+                    className={`px-3.5 py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 cursor-pointer transition-all shadow-xs ${
+                      hasUnreviewedDocs
+                        ? 'bg-emerald-600 hover:bg-emerald-700 text-white animate-pulse'
+                        : 'bg-teal-600 hover:bg-teal-700 text-white'
+                    }`}
+                    title="Notify Dr. DoctoMPT that all documents have been uploaded and ask for review"
+                  >
+                    <CheckCircle2 className="w-3.5 h-3.5" />
+                    <span>
+                      {hasUnreviewedDocs
+                        ? 'Done Uploading — Tell Doctor to Review All'
+                        : 'Re-send Documents to Doctor'}
+                    </span>
+                  </button>
+                </div>
               )}
             </div>
 
